@@ -200,7 +200,7 @@
       "location": "centralindia",
       "plan": {
         "name": "athena-azure-plan-06",
-        "product": "athena-beta-release-v5",
+        "product": "athena-beta-release-v5-preview",
         "publisher": "yendigital"
       },
       "dependsOn": [
