@@ -24,14 +24,4 @@ UPDATE wp_users SET user_login = '$ADMIN_USER', user_pass = MD5('$ADMIN_PASS') W
 wp option update blogname "$BRAND_NAME" --path="$WP_PATH" --allow-root
 wp option update blogdescription "$BRAND_NAME" --path="$WP_PATH" --allow-root
 
-# 3. Replace OLD_IP → NEW_IP everywhere else
-OLD_IP="127.0.0.1"
-wp search-replace "http://$OLD_IP" "http://$NEW_IP" \
-  --all-tables --skip-columns=guid --dry-run \
-  --path="$WP_PATH" --allow-root
 
-wp search-replace "http://$OLD_IP" "http://$NEW_IP" \
-  --all-tables --skip-columns=guid \
-  --path="$WP_PATH" --allow-root
-
-wp cache flush --path="$WP_PATH" --allow-root
