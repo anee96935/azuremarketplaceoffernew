@@ -10,14 +10,28 @@ DB_USER=$(cat /etc/athena/db_user)
 DB_PASS=$(cat /etc/athena/db_pass)
 DB_NAME=$(cat /etc/athena/db_name)
 
+# Get the public IP from Azure metadata service
 NEW_IP=$(curl -s -H Metadata:true "http://169.254.169.254/metadata/instance/network/interface/0/ipv4/ipAddress/0/publicIpAddress?api-version=2021-02-01&format=text")
 
+# 1. Update directly via MySQL
 mysql -u "$DB_USER" -p"$DB_PASS" "$DB_NAME" -e "
 UPDATE wp_options SET option_value = '$BRAND_NAME' WHERE option_name IN ('blogname', 'blogdescription');
 UPDATE wp_options SET option_value = 'http://$NEW_IP' WHERE option_name IN ('siteurl', 'home');
 UPDATE wp_users SET user_login = '$ADMIN_USER', user_pass = MD5('$ADMIN_PASS') WHERE ID = 1;
 "
 
-# Update WordPress options via WP-CLI
+# 2. Update WordPress options via WP-CLI (double safety)
 wp option update blogname "$BRAND_NAME" --path="$WP_PATH" --allow-root
 wp option update blogdescription "$BRAND_NAME" --path="$WP_PATH" --allow-root
+
+# 3. Replace OLD_IP → NEW_IP everywhere else
+OLD_IP="127.0.0.1"
+wp search-replace "http://$OLD_IP" "http://$NEW_IP" \
+  --all-tables --skip-columns=guid --dry-run \
+  --path="$WP_PATH" --allow-root
+
+wp search-replace "http://$OLD_IP" "http://$NEW_IP" \
+  --all-tables --skip-columns=guid \
+  --path="$WP_PATH" --allow-root
+
+wp cache flush --path="$WP_PATH" --allow-root
