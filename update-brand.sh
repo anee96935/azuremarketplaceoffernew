@@ -21,3 +21,14 @@ UPDATE wp_users SET user_login = '$ADMIN_USER', user_pass = MD5('$ADMIN_PASS') W
 # Update WordPress options via WP-CLI
 wp option update blogname "$BRAND_NAME" --path="$WP_PATH" --allow-root
 wp option update blogdescription "$BRAND_NAME" --path="$WP_PATH" --allow-root
+
+OLD_IP="127.0.0.1"
+wp search-replace "http://$OLD_IP" "http://$NEW_IP" \
+  --all-tables --skip-columns=guid --dry-run \
+  --path="$WP_PATH" --allow-root
+
+wp search-replace "http://$OLD_IP" "http://$NEW_IP" \
+  --all-tables --skip-columns=guid \
+  --path="$WP_PATH" --allow-root
+
+wp cache flush --path="$WP_PATH" --allow-root
