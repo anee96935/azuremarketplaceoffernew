@@ -227,7 +227,7 @@
         },
         "storageProfile": {
           "imageReference": {
-            "id": "/subscriptions/5f6a39dd-3db6-4fa2-bf7a-3f573e042889/resourceGroups/Athena-dev/providers/Microsoft.Compute/galleries/athenacomputegallery12082025/images/athena-compute-gallery-12082025-definition/versions/1.0.2"
+            "id": "ubscriptions/5f6a39dd-3db6-4fa2-bf7a-3f573e042889/resourceGroups/Athena-dev/providers/Microsoft.Compute/galleries/athenacomputegallery22092025/images/athena-compute-gallery-22092025-definition/versions/1.0.0"
           },
           "osDisk": {
             "createOption": "FromImage",
