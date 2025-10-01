@@ -11,8 +11,7 @@ useradd -m -s /bin/bash "$CUSTOMER_USER" 2>/dev/null
 echo "$CUSTOMER_USER:$ADMIN_PASS" | chpasswd
 deluser "$CUSTOMER_USER" sudo 2>/dev/null
 
-# Minimal security - only protect sensitive files
-chmod 600 "$WP_PATH/wp-config.php" 2>/dev/null
+# Minimal security - only protect database credentials
 chmod 600 /etc/athena/db_* 2>/dev/null
 
 # Read DB credentials from a secure local file or env vars
