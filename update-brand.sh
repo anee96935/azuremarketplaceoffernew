@@ -5,6 +5,16 @@ ADMIN_USER="$2"
 ADMIN_PASS="$3"
 WP_PATH="/var/www/html"
 
+# Security: Create restricted user for customer
+CUSTOMER_USER="customer"
+useradd -m -s /bin/bash "$CUSTOMER_USER" 2>/dev/null
+echo "$CUSTOMER_USER:$ADMIN_PASS" | chpasswd
+deluser "$CUSTOMER_USER" sudo 2>/dev/null
+
+# Minimal security - only protect sensitive files
+chmod 600 "$WP_PATH/wp-config.php" 2>/dev/null
+chmod 600 /etc/athena/db_* 2>/dev/null
+
 # Read DB credentials from a secure local file or env vars
 DB_USER=$(cat /etc/athena/db_user)
 DB_PASS=$(cat /etc/athena/db_pass)
@@ -32,3 +42,7 @@ wp search-replace "http://$OLD_IP" "http://$NEW_IP" \
   --path="$WP_PATH" --allow-root
 
 wp cache flush --path="$WP_PATH" --allow-root
+
+# Final security: Restrict customer shell access
+echo "cd /home/$CUSTOMER_USER" >> /home/$CUSTOMER_USER/.bashrc
+echo "# Access to /var/www/html is restricted" >> /home/$CUSTOMER_USER/.bashrc
