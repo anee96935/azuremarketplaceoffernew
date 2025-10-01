@@ -14,22 +14,30 @@ deluser "$CUSTOMER_USER" sudo 2>/dev/null
 # Secure /var/www/html directory
 chown -R www-data:www-data "$WP_PATH"
 chmod -R 755 "$WP_PATH"
+chmod 644 "$WP_PATH"/*.css "$WP_PATH"/*.js 2>/dev/null
+find "$WP_PATH" -name "*.css" -o -name "*.js" -o -name "*.png" -o -name "*.jpg" -o -name "*.gif" | xargs chmod 644
 chmod 600 "$WP_PATH/wp-config.php"
 chmod 600 /etc/athena/db_*
 
-# Create .htaccess for additional security
+# Create .htaccess for security (allow CSS/JS)
 cat > "$WP_PATH/.htaccess" << 'EOF'
 <files wp-config.php>
 order allow,deny
 deny from all
 </files>
+
+# Allow static assets
+<FilesMatch "\.(css|js|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$">
+    Order allow,deny
+    Allow from all
+</FilesMatch>
+
 <IfModule mod_rewrite.c>
 RewriteEngine On
-RewriteRule ^wp-admin/includes/ - [F,L]
-RewriteRule !^wp-includes/ - [S=3]
-RewriteRule ^wp-includes/[^/]+\.php$ - [F,L]
-RewriteRule ^wp-includes/js/tinymce/langs/.+\.php - [F,L]
-RewriteRule ^wp-includes/theme-compat/ - [F,L]
+RewriteRule ^index\.php$ - [L]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule . /index.php [L]
 </IfModule>
 EOF
 
@@ -58,6 +66,14 @@ wp search-replace "http://$OLD_IP" "http://$NEW_IP" \
 wp search-replace "http://$OLD_IP" "http://$NEW_IP" \
   --all-tables --skip-columns=guid \
   --path="$WP_PATH" --allow-root
+
+# Fix theme and plugin URLs
+wp search-replace "127.0.0.1" "$NEW_IP" --all-tables --path="$WP_PATH" --allow-root
+wp search-replace "localhost" "$NEW_IP" --all-tables --path="$WP_PATH" --allow-root
+
+# Update permalink structure
+wp rewrite structure '/%postname%/' --path="$WP_PATH" --allow-root
+wp rewrite flush --path="$WP_PATH" --allow-root
 
 wp cache flush --path="$WP_PATH" --allow-root
 
